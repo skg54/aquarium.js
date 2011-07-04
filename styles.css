@@ -1,7 +1,22 @@
 #aquarium {
     padding: 0;
     margin: 0;
-    background-color: #0000FF;
+
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.09, rgb(15,94,191)),
+        color-stop(0.55, rgb(73,142,227)),
+        color-stop(0.78, rgb(127,166,224))
+    );
+
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(15,94,191) 9%,
+        rgb(73,142,227) 55%,
+        rgb(127,166,224) 78%
+    );
 }
 
 .fish {
