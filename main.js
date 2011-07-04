@@ -8,9 +8,9 @@ var WIDTH = 800;
 
 var AQUARIUM_TOTAL_FISH = 8;
 var AQUARIUM_LEFT_EDGE = 0;
-var AQUARIUM_RIGHT_EDGE = WIDTH;
+var AQUARIUM_RIGHT_EDGE = 0;
 var AQUARIUM_TOP_EDGE = 0;
-var AQUARIUM_BOTTOM_EDGE = HEIGHT;
+var AQUARIUM_BOTTOM_EDGE = 0;
 
 var fish = {};
 
@@ -67,6 +67,8 @@ function createFish() {
 
     AQUARIUM_LEFT_EDGE = aquarium.offset().left;
     AQUARIUM_TOP_EDGE = aquarium.offset().top;
+    AQUARIUM_BOTTOM_EDGE = HEIGHT + aquarium.offset().top;
+    AQUARIUM_RIGHT_EDGE = WIDTH + aquarium.offset().left;
 
     for(var i = 0; i < AQUARIUM_TOTAL_FISH; i++) {
         var newFish = new Fish(16, 20);
