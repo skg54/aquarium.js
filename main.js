@@ -11,8 +11,8 @@ var AQUARIUM_BOTTOM_EDGE = 480;
 
 var fish = {};
 
-function randomNextInt() {
-    return Math.floor(Math.random() * 101);
+function randomIntInRange(min, max) {
+      return Math.round(min + (Math.random() * (max - min)));
 }
 
 function Fish() {
@@ -23,12 +23,12 @@ function Fish() {
 }
 
 Fish.prototype.move = function() {
-    if (randomNextInt() % 9 < 1) {
-        this.velocityX += randomNextInt() % FISH_SPEED_INCREMENT;
+    if (randomIntInRange(0, 10) <= 1) {
+        this.velocityX += randomIntInRange(-FISH_SPEED_INCREMENT, FISH_SPEED_INCREMENT);
         this.velocityX = Math.min(this.velocityX, FISH_MAX_VELOCITY);
         this.velocityX = Math.max(this.velocityX, -FISH_MAX_VELOCITY);
 
-        this.velocityY += randomNextInt() % FISH_SPEED_INCREMENT;
+        this.velocityY += randomIntInRange(-FISH_SPEED_INCREMENT, FISH_SPEED_INCREMENT);
         this.velocityY = Math.min(this.velocityY, FISH_MAX_VELOCITY);
         this.velocityY = Math.max(this.velocityY, -FISH_MAX_VELOCITY);
     }		
@@ -57,8 +57,8 @@ Fish.prototype.move = function() {
 
 function createFish() {
     var aquarium = $('#aquarium');
-    AQUARIUM_LEFT_EDGE = aquarium.offset.left;
-    AQUARIUM_TOP_EDGE = aquarium.offset.top;
+    AQUARIUM_LEFT_EDGE = aquarium.offset().left;
+    AQUARIUM_TOP_EDGE = aquarium.offset().top;
 
     for(var i = 0; i < AQUARIUM_TOTAL_FISH; i++) {
         var newFish = new Fish();
