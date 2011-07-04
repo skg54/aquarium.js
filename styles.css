@@ -1,6 +1,4 @@
 #aquarium {
-    width: 640px;
-    height: 480px;
     padding: 0;
     margin: 0;
     background-color: #0000FF;
@@ -12,5 +10,12 @@
     position: absolute;
     width: 16px;
     height: 20px;
-    background-image: url(fish.gif);
+}
+
+.left {
+    background-image: url(fish_l.gif);
+}
+
+.right {
+    background-image: url(fish_r.gif);
 }
