@@ -1,22 +1,20 @@
 var ANIMATION_INTERVAL = 100;
 
-var FISH_MAX_VELOCITY = 6;
+var FISH_WIDTH = 16;
+var FISH_HEIGHT = 20;
+var FISH_MAX_VELOCITY = 8;
 var FISH_SPEED_INCREMENT = 4;
 
-var HEIGHT = 600;
-var WIDTH = 800;
-
+var AQUARIUM_WIDTH = 800;
+var AQUARIUM_HEIGHT = 600;
 var AQUARIUM_TOTAL_FISH = 8;
 var AQUARIUM_LEFT_EDGE = 0;
 var AQUARIUM_RIGHT_EDGE = 0;
 var AQUARIUM_TOP_EDGE = 0;
 var AQUARIUM_BOTTOM_EDGE = 0;
 
-var fish = {};
-
-function randomIntInRange(min, max) {
-      return Math.round(min + (Math.random() * (max - min)));
-}
+var fishes;
+var moveFish;
 
 function Fish(width, height) {
     this.width = width;
@@ -27,85 +25,112 @@ function Fish(width, height) {
     this.velocityY = 0;
 }
 
-Fish.prototype.move = function() {
-    if (randomIntInRange(0, 10) <= 1) {
-        this.velocityX += randomIntInRange(-FISH_SPEED_INCREMENT, FISH_SPEED_INCREMENT);
-        this.velocityX = Math.min(this.velocityX, FISH_MAX_VELOCITY);
-        this.velocityX = Math.max(this.velocityX, -FISH_MAX_VELOCITY);
+function randomIntInRange(min, max) {
+      return Math.round(min + (Math.random() * (max - min)));
+}
 
-        this.velocityY += randomIntInRange(-FISH_SPEED_INCREMENT, FISH_SPEED_INCREMENT);
-        this.velocityY = Math.min(this.velocityY, FISH_MAX_VELOCITY);
-        this.velocityY = Math.max(this.velocityY, -FISH_MAX_VELOCITY);
+function adjustVelocity(velocity) {
+    var increment = randomIntInRange(-FISH_SPEED_INCREMENT, FISH_SPEED_INCREMENT);
+    var newVelocity = velocity + increment;
+    newVelocity = Math.min(newVelocity, FISH_MAX_VELOCITY);
+    newVelocity = Math.max(newVelocity, -FISH_MAX_VELOCITY);
+    return newVelocity;
+}
+
+function randomFishMovement(fish) {
+    if (randomIntInRange(0, 10) <= 1) {
+        fish.velocityX = adjustVelocity(fish.velocityX);
+        fish.velocityY = adjustVelocity(fish.velocityY);
     }		
 
-    this.x += this.velocityX;
-    this.y += this.velocityY;
+    fish.x += fish.velocityX;
+    fish.y += fish.velocityY;
+    keepFishInsideAquarium(fish);
+}
 
-    if (this.x < AQUARIUM_LEFT_EDGE) {
-        this.x = AQUARIUM_LEFT_EDGE;
-        this.velocityX = -this.velocityX;
+function keepFishInsideAquarium(fish) {
+    if (fish.x < AQUARIUM_LEFT_EDGE) {
+        fish.x = AQUARIUM_LEFT_EDGE;
+        fish.velocityX = -fish.velocityX;
     }
-    else if ((this.x + this.width) > AQUARIUM_RIGHT_EDGE) {
-        this.x = AQUARIUM_RIGHT_EDGE - this.width;
-        this.velocityX = -this.velocityX;
+    else if ((fish.x + fish.width) > AQUARIUM_RIGHT_EDGE) {
+        fish.x = AQUARIUM_RIGHT_EDGE - fish.width;
+        fish.velocityX = -fish.velocityX;
     }
 
-    if (this.y < AQUARIUM_TOP_EDGE) {
-        this.y = AQUARIUM_TOP_EDGE;
-        this.velocityY = -this.velocityY;
+    if (fish.y < AQUARIUM_TOP_EDGE) {
+        fish.y = AQUARIUM_TOP_EDGE;
+        fish.velocityY = -fish.velocityY;
     }
-    else if ((this.y + this.height) > AQUARIUM_BOTTOM_EDGE) {
-        this.y = AQUARIUM_BOTTOM_EDGE - this.height;
-        this.velocityY = -this.velocityY;
+    else if ((fish.y + fish.height) > AQUARIUM_BOTTOM_EDGE) {
+        fish.y = AQUARIUM_BOTTOM_EDGE - fish.height;
+        fish.velocityY = -fish.velocityY;
     }
 }
 
-function createFish() {
-    var aquarium = $('#aquarium');
-    aquarium.height(HEIGHT);
-    aquarium.width(WIDTH);
+function updateFish(element, fish) {
+    element.offset({left: fish.x, top: fish.y});
 
-    AQUARIUM_LEFT_EDGE = aquarium.offset().left;
-    AQUARIUM_TOP_EDGE = aquarium.offset().top;
-    AQUARIUM_BOTTOM_EDGE = HEIGHT + aquarium.offset().top;
-    AQUARIUM_RIGHT_EDGE = WIDTH + aquarium.offset().left;
-
-    for(var i = 0; i < AQUARIUM_TOTAL_FISH; i++) {
-        var newFish = new Fish(16, 20);
-        newFish.x = AQUARIUM_RIGHT_EDGE / 2;
-        newFish.y = AQUARIUM_BOTTOM_EDGE / 2; 
-
-        var fishID = "fish" + i;
-        fish[fishID] = newFish;
-
-        var fishElement = $('<li>',  {class: 'fish right',  id: fishID});
-        aquarium.append(fishElement);    
+    // Adjust fish image
+    if (fish.velocityX >= 0) {
+        element.removeClass('left');
+        element.addClass('right');
+    }
+    else {
+        element.removeClass('right');
+        element.addClass('left');
     }
 }
 
-function animate() {
-    $('.fish').each(function() {
-        var fishID = $(this).attr('id');
-        var f = fish[fishID];
-        f.move();
-        $(this).offset({ left: f.x, top: f.y });
-
-        if (f.velocityX >= 0) {
-            $(this).removeClass('left');
-            $(this).addClass('right');
-        }
-        else {
-            $(this).removeClass('right');
-            $(this).addClass('left');
-        }
+function animateFish() {
+    $.each(fishes, function(index, fish) {
+        var element = $('#' + index);
+        moveFish(fish);
+        updateFish(element, fish);
     });
 }
 
-function setupAquarium() {
-    createFish();
+function setupAquarium(element, AQUARIUM_WIDTH, AQUARIUM_HEIGHT) {
+    element.width(AQUARIUM_WIDTH);
+    element.height(AQUARIUM_HEIGHT);
+
+    var elementX = element.offset().left;
+    var elementY = element.offset().top;
+
+    AQUARIUM_LEFT_EDGE = elementX;
+    AQUARIUM_RIGHT_EDGE = AQUARIUM_WIDTH + elementX;
+
+    AQUARIUM_TOP_EDGE = elementY;
+    AQUARIUM_BOTTOM_EDGE = AQUARIUM_HEIGHT + elementY;
+}
+
+function createFish(totalFish, x, y) {
+    var fishes = [];
+
+    for (var i = 0; i < totalFish; i++) {
+        var newFish = new Fish(FISH_WIDTH, FISH_HEIGHT);
+        newFish.x = (AQUARIUM_RIGHT_EDGE / 2);
+        newFish.y = (AQUARIUM_BOTTOM_EDGE / 2); 
+        fishes.push(newFish)
+    }
+    
+    return fishes;
+}
+
+function addFishToAquarium(aquarium, fishes) {
+    $.each(fishes, function(index) {
+        var fishElement = $('<li>', {class: 'fish right',  id: index});
+        aquarium.append(fishElement);    
+    });
 }
 
 $(function() {
-    setupAquarium();
-    setInterval(animate, ANIMATION_INTERVAL);
+    var aquariumElement = $('#aquarium');
+    setupAquarium(aquariumElement, AQUARIUM_WIDTH, AQUARIUM_HEIGHT);
+
+    fishes = createFish(AQUARIUM_TOTAL_FISH);
+    addFishToAquarium(aquariumElement, fishes);
+    moveFish = randomFishMovement;
+
+    setInterval(animateFish, ANIMATION_INTERVAL);
 });
