@@ -1,18 +1,21 @@
 var ANIMATION_INTERVAL = 100;
 
+// FISH PROPERTIES
 var FISH_WIDTH = 16;
 var FISH_HEIGHT = 20;
 var FISH_MAX_VELOCITY = 8;
 var FISH_SPEED_INCREMENT = 4;
 
-var AQUARIUM_WIDTH = 800;
-var AQUARIUM_HEIGHT = 600;
-var AQUARIUM_TOTAL_FISH = 8;
+// AQUARIUM PROPERTIES
+var AQUARIUM_WIDTH = 640;
+var AQUARIUM_HEIGHT = 480;
+var AQUARIUM_TOTAL_FISH = 12;
 var AQUARIUM_LEFT_EDGE = 0;
 var AQUARIUM_RIGHT_EDGE = 0;
 var AQUARIUM_TOP_EDGE = 0;
 var AQUARIUM_BOTTOM_EDGE = 0;
 
+// GLOBAL VARS
 var fishes;
 var moveFish;
 
@@ -68,17 +71,14 @@ function keepFishInsideAquarium(fish) {
     }
 }
 
-function updateFish(element, fish) {
+function updateFishOnScreen(element, fish) {
     element.offset({left: fish.x, top: fish.y});
 
-    // Adjust fish image
-    if (fish.velocityX >= 0) {
-        element.removeClass('left');
-        element.addClass('right');
-    }
-    else {
-        element.removeClass('right');
-        element.addClass('left');
+    var hasChangedDirections = (fish.velocityX >= 0 && element.hasClass('left')) || 
+                               (fish.velocityX < 0 && element.hasClass('right'));
+    if (hasChangedDirections) {
+        element.toggleClass('left');
+        element.toggleClass('right');
     }
 }
 
@@ -86,7 +86,7 @@ function animateFish() {
     $.each(fishes, function(index, fish) {
         var element = $('#' + index);
         moveFish(fish);
-        updateFish(element, fish);
+        updateFishOnScreen(element, fish);
     });
 }
 
