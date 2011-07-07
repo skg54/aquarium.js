@@ -3,8 +3,8 @@ var ANIMATION_INTERVAL = 100;
 // FISH PROPERTIES
 var FISH_WIDTH = 16;
 var FISH_HEIGHT = 20;
-var FISH_MAX_VELOCITY = 8;
-var FISH_SPEED_INCREMENT = 4;
+var FISH_MAX_VELOCITY = 6;
+var FISH_SPEED_INCREMENT = 3;
 
 // AQUARIUM PROPERTIES
 var AQUARIUM_WIDTH = 640;
@@ -17,7 +17,9 @@ var AQUARIUM_BOTTOM_EDGE = 0;
 
 // GLOBAL VARS
 var fishes;
-var moveFish;
+var moveFishes;
+var mouseX = 0;
+var mouseY = 0;
 
 function Fish(width, height) {
     this.width = width;
@@ -40,15 +42,16 @@ function adjustVelocity(velocity) {
     return newVelocity;
 }
 
-function randomFishMovement(fish) {
-    if (randomIntInRange(0, 10) <= 1) {
-        fish.velocityX = adjustVelocity(fish.velocityX);
-        fish.velocityY = adjustVelocity(fish.velocityY);
-    }		
+function randomFishMovement(fishes) {
+    $.each(fishes, function(index, fish) {
+        if (randomIntInRange(0, 10) <= 1) {
+            fish.velocityX = adjustVelocity(fish.velocityX);
+            fish.velocityY = adjustVelocity(fish.velocityY);
+        }		
 
-    fish.x += fish.velocityX;
-    fish.y += fish.velocityY;
-    keepFishInsideAquarium(fish);
+        fish.x += fish.velocityX;
+        fish.y += fish.velocityY;
+    });
 }
 
 function keepFishInsideAquarium(fish) {
@@ -83,9 +86,11 @@ function updateFishOnScreen(element, fish) {
 }
 
 function animateFish() {
+    moveFishes(fishes);
+
     $.each(fishes, function(index, fish) {
-        var element = $('#' + index);
-        moveFish(fish);
+        keepFishInsideAquarium(fish);
+        var element = $('#fish' + index);
         updateFishOnScreen(element, fish);
     });
 }
@@ -104,13 +109,11 @@ function setupAquarium(element, AQUARIUM_WIDTH, AQUARIUM_HEIGHT) {
     AQUARIUM_BOTTOM_EDGE = AQUARIUM_HEIGHT + elementY;
 }
 
-function createFish(totalFish, x, y) {
+function createFish(totalFish) {
     var fishes = [];
 
     for (var i = 0; i < totalFish; i++) {
         var newFish = new Fish(FISH_WIDTH, FISH_HEIGHT);
-        newFish.x = (AQUARIUM_RIGHT_EDGE / 2);
-        newFish.y = (AQUARIUM_BOTTOM_EDGE / 2); 
         fishes.push(newFish)
     }
     
@@ -119,18 +122,192 @@ function createFish(totalFish, x, y) {
 
 function addFishToAquarium(aquarium, fishes) {
     $.each(fishes, function(index) {
-        var fishElement = $('<li>', {class: 'fish right',  id: index});
+        var fishElement = $('<li>', {class: 'fish right', id: 'fish' + index});
         aquarium.append(fishElement);    
     });
 }
 
-$(function() {
+function disperseFishes(fishes) {
+    $.each(fishes, function(index, fish) {
+        fish.x = randomIntInRange(AQUARIUM_LEFT_EDGE, AQUARIUM_RIGHT_EDGE);
+        fish.y = randomIntInRange(AQUARIUM_TOP_EDGE, AQUARIUM_BOTTOM_EDGE);
+    });
+}
+
+function loadAquarium() {
     var aquariumElement = $('#aquarium');
     setupAquarium(aquariumElement, AQUARIUM_WIDTH, AQUARIUM_HEIGHT);
 
     fishes = createFish(AQUARIUM_TOTAL_FISH);
+    disperseFishes(fishes);
     addFishToAquarium(aquariumElement, fishes);
-    moveFish = randomFishMovement;
+    moveFishes = boidMoveFishes;//randomFishMovement;
+
+    $(document).mousemove(function(e){
+       mouseX = e.pageX;
+       mouseY = e.pageY;
+    });
 
     setInterval(animateFish, ANIMATION_INTERVAL);
-});
+}
+
+
+// Boid Algorithm
+function distance(fish, otherFish) {
+    var distX = fish.x - otherFish.x;
+	var distY = fish.y - otherFish.y;
+	return Math.sqrt(distX * distX + distY * distY);
+}
+	
+function moveAway(currentFish, fishes, minDistance) {
+	var distanceX = 0;
+	var distanceY = 0;
+	var numClose = 0;
+
+	for (var i = 0; i < fishes.length; i++) {
+		var fish = fishes[i];
+		
+        var sameFish = (currentFish.x == fish.x && currentFish.y == fish.y);
+
+		if (sameFish) { 
+            continue;
+        }
+
+		if (distance(currentFish, fish) < minDistance) {
+			numClose++;
+			var xdiff = (currentFish.x - fish.x);
+			var ydiff = (currentFish.y - fish.y);
+
+			if (xdiff >= 0) {
+                xdiff = Math.sqrt(minDistance) - xdiff;
+            }
+            else if (xdiff < 0) {
+                xdiff = -Math.sqrt(minDistance) - xdiff;
+            }
+
+			if (ydiff >= 0) {
+                ydiff = Math.sqrt(minDistance) - ydiff;
+            }
+            else if (ydiff < 0) {
+                ydiff = -Math.sqrt(minDistance) - ydiff;
+            }
+
+			distanceX += xdiff;
+			distanceY += ydiff;
+		}
+	}
+	
+	if (numClose == 0) {
+        return;
+    }
+
+	currentFish.velocityX -= (distanceX / 5);
+	currentFish.velocityY -= (distanceY / 5);
+}
+	
+function avoidMouse(currentFish, mouseX, mouseY, minDistance) {
+	var distanceX = 0;
+	var distanceY = 0;
+    var fish = {x: mouseX, y: mouseY};
+		
+    if (distance(currentFish, fish) < minDistance) {
+        var xdiff = (currentFish.x - fish.x);
+        var ydiff = (currentFish.y - fish.y);
+
+        if (xdiff >= 0) {
+            xdiff = Math.sqrt(minDistance) - xdiff;
+        }
+        else if (xdiff < 0) {
+            xdiff = -Math.sqrt(minDistance) - xdiff;
+        }
+
+        if (ydiff >= 0) {
+            ydiff = Math.sqrt(minDistance) - ydiff;
+        }
+        else if (ydiff < 0) {
+            ydiff = -Math.sqrt(minDistance) - ydiff;
+        }
+
+        distanceX += xdiff;
+        distanceY += ydiff;
+    }
+	
+	currentFish.velocityX -= (distanceX / 5);
+	currentFish.velocityY -= (distanceY / 5);
+}
+
+function moveCloser(currentFish, fishes, min_distance) {
+	var avgX = 0;
+	var avgY = 0;
+
+	for (var i = 0; i < fishes.length; i++) {
+		var fish = fishes[i];
+
+        var sameFish = (currentFish.x == fish.x && currentFish.y == fish.y);
+
+		if (sameFish || distance(currentFish, fish) > min_distance) { 
+            continue;
+        }
+
+		avgX += (currentFish.x - fish.x);
+		avgY += (currentFish.y - fish.y);
+	}
+
+	avgX /= fishes.length;
+	avgY /= fishes.length;
+
+	min_distance = Math.sqrt((avgX * avgX) + (avgY * avgY)) * -1.0
+
+	if (min_distance == 0) {
+        return;
+    }
+
+	currentFish.velocityX = Math.min(currentFish.velocityX + (avgX / min_distance) * 0.15, FISH_MAX_VELOCITY);
+	currentFish.velocityY = Math.min(currentFish.velocityY + (avgY / min_distance) * 0.15, FISH_MAX_VELOCITY);
+}
+	
+function moveWith(currentFish, fishes, min_distance) {
+	var avgX = 0;
+	var avgY = 0;
+
+	for (var i = 0; i < fishes.length; i++) {
+		var fish = fishes[i];
+        var sameFish = (currentFish.x == fish.x && currentFish.y == fish.y);
+
+		if (sameFish || distance(currentFish, fish) > min_distance) { 
+            continue;
+        }
+		
+		avgX += fish.velocityX;
+		avgY += fish.velocityY;
+	}
+
+	avgX /= fishes.length;
+	avgY /= fishes.length;
+
+	min_distance = Math.sqrt((avgX * avgX) + (avgY * avgY)) * 1.0
+	
+    if (min_distance == 0) {
+        return; 
+    }
+
+	currentFish.velocityX = Math.min(currentFish.velocityX + (avgX / min_distance) * 0.05, FISH_MAX_VELOCITY)
+	currentFish.velocityY = Math.min(currentFish.velocityY + (avgY / min_distance) * 0.05, FISH_MAX_VELOCITY)
+}
+
+function boidMoveFishes(fishes) {
+    $.each(fishes, function(index, currentFish) {
+        moveWith(currentFish, fishes, 300);
+        moveCloser(currentFish, fishes, 300);					
+
+        avoidMouse(currentFish, mouseX, mouseY, 60);
+        moveAway(currentFish, fishes, 15);	
+    });
+
+    $.each(fishes, function(index, currentFish) {
+        currentFish.x += currentFish.velocityX;
+        currentFish.y += currentFish.velocityY;
+    });
+};		
+
+$(loadAquarium);
