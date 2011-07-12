@@ -4,6 +4,12 @@
         <link rel="stylesheet" type="text/css" href="styles.css" />
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"> </script>
         <script type="text/javascript" src="main.js"> </script>
+        <script type="text/javascript">
+            $(function() {
+                var element = $(document.body);
+                loadAquarium(element);
+            });
+        </script>
     </head>
     <body>
         <ul id="aquarium">

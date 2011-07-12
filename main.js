@@ -7,7 +7,7 @@ var FISH_MAX_VELOCITY = 6;
 var FISH_SPEED_INCREMENT = 3;
 
 // AQUARIUM PROPERTIES
-var AQUARIUM_TOTAL_FISH = 12;
+var AQUARIUM_TOTAL_FISH = 64;
 var AQUARIUM_LEFT_EDGE = 0;
 var AQUARIUM_RIGHT_EDGE = 0;
 var AQUARIUM_TOP_EDGE = 0;
@@ -132,8 +132,7 @@ function disperseFishes(fishes) {
     });
 }
 
-function loadAquarium() {
-    var aquariumElement = $(document.body);
+function loadAquarium(aquariumElement) {
     var AQUARIUM_WIDTH = aquariumElement.width();
     var AQUARIUM_HEIGHT = aquariumElement.height();
     setupAquarium(aquariumElement, AQUARIUM_WIDTH, AQUARIUM_HEIGHT);
@@ -141,7 +140,7 @@ function loadAquarium() {
     fishes = createFish(AQUARIUM_TOTAL_FISH);
     disperseFishes(fishes);
     addFishToAquarium(aquariumElement, fishes);
-    moveFishes = boidMoveFishes;//randomFishMovement;
+    moveFishes = boidMoveFishes;
 
     $(document).mousemove(function(e){
        mouseX = e.pageX;
@@ -150,7 +149,6 @@ function loadAquarium() {
 
     setInterval(animateFish, ANIMATION_INTERVAL);
 }
-
 
 // Boid Algorithm
 function distance(fish, otherFish) {
