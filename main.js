@@ -7,8 +7,6 @@ var FISH_MAX_VELOCITY = 6;
 var FISH_SPEED_INCREMENT = 3;
 
 // AQUARIUM PROPERTIES
-var AQUARIUM_WIDTH = 640;
-var AQUARIUM_HEIGHT = 480;
 var AQUARIUM_TOTAL_FISH = 12;
 var AQUARIUM_LEFT_EDGE = 0;
 var AQUARIUM_RIGHT_EDGE = 0;
@@ -135,7 +133,9 @@ function disperseFishes(fishes) {
 }
 
 function loadAquarium() {
-    var aquariumElement = $('#aquarium');
+    var aquariumElement = $(document.body);
+    var AQUARIUM_WIDTH = aquariumElement.width();
+    var AQUARIUM_HEIGHT = aquariumElement.height();
     setupAquarium(aquariumElement, AQUARIUM_WIDTH, AQUARIUM_HEIGHT);
 
     fishes = createFish(AQUARIUM_TOTAL_FISH);
