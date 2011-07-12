@@ -309,5 +309,3 @@ function boidMoveFishes(fishes) {
         currentFish.y += currentFish.velocityY;
     });
 };		
-
-$(loadAquarium);
